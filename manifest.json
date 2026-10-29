@@ -1,6 +1,7 @@
 {
 
 	"action": {
+		"browser_style": false,
 		"default_icon": {
 			"16": "icons/leechblock16.png",
 			"32": "icons/leechblock32.png",
@@ -14,17 +15,7 @@
 	"author": "James Anderson",
 
 	"background": {
-		"scripts": ["common.js", "background.js"]
-	},
-
-	"browser_specific_settings": {
-		"gecko": {
-			"id": "leechblockng@proginosko.com",
-			"data_collection_permissions": {
-				"required": ["none"]
-			},
-			"strict_min_version": "109.0"
-		}
+		"service_worker": "background.js"
 	},
 
 	"commands": {
@@ -87,6 +78,8 @@
 		"128": "icons/leechblock128.png"
 	},
 
+	"incognito": "split",
+
 	"manifest_version": 3,
 
 	"name": "__MSG_extensionName__",
@@ -102,7 +95,8 @@
 	
 	"permissions": [
 		"alarms",
-		"menus",
+		"contextMenus",
+		"offscreen",
 		"storage",
 		"tabs",
 		"unlimitedStorage",

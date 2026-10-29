@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const browser = chrome;
+
 const TIMER_SIZES = ["10px", "12px", "14px", "16px"];
 
 const TIMER_LOCATIONS = [
@@ -167,7 +169,7 @@ function handleMessage(message, sender, sendResponse) {
 			break;
 
 		case "keyword":
-			let keyword = checkKeyword(message.keywordRE, message.titleOnly);
+			let keyword = checkKeyword(new RegExp(message.keywordRE, "iu"), message.titleOnly); // Chrome workaround
 			sendResponse(keyword);
 			break;
 

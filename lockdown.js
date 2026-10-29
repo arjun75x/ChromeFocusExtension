@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const browser = chrome;
+
 function log(message) { console.log("[LBNG] " + message); }
 function warn(message) { console.warn("[LBNG] " + message); }
 
@@ -181,5 +183,5 @@ $("div[id^='alert']").dialog({
 	}
 });
 
-document.addEventListener("DOMContentLoaded", refreshPage);
-document.addEventListener("focus", refreshPage);
+window.addEventListener("DOMContentLoaded", refreshPage);
+window.addEventListener("focus", refreshPage);

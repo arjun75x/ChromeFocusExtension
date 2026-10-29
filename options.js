@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const browser = chrome;
+
 const DEFAULT_OPTIONS_FILE = "LeechBlockOptions-#.txt";
 const DEFAULT_JSON_FILE = "LeechBlockOptions-#.json";
 
@@ -911,10 +913,10 @@ function applyImportOptions(options) {
 			}
 		}
 
-		// Apply Chrome-specific options
-		let val = options[`prevExts${set}`];
+		// Apply Firefox-specific options
+		let val = options[`prevAddons${set}`];
 		if (val != undefined) {
-			getElement(`prevAddons${set}`).checked = val;
+			getElement(`prevExts${set}`).checked = val;
 		}
 
 		// Apply custom set name to tab (if specified)
@@ -1378,6 +1380,6 @@ $("div[id^='alert']").dialog({
 initAccessControlPrompt("promptPassword");
 initAccessControlPrompt("promptAccessCode");
 
-document.addEventListener("DOMContentLoaded", retrieveOptions);
+window.addEventListener("DOMContentLoaded", retrieveOptions);
 
 window.addEventListener("keydown", handleKeyDown);

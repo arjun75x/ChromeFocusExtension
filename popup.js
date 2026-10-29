@@ -1,140 +1,239 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* FocusBlock Modern Popup Script */
 
-const SUPPORT_URL = "https://www.proginosko.com/leechblock/support/";
+const browser = chrome;
+let currentDomain = "";
+let currentBlockedSites = [];
+const ACTIVE_SET = 1;
 
-// Initialize page
-//
-function initializePage() {
-	browser.storage.local.get("sync").then(onGotSync);
-
-	function onGotSync(options) {
-		if (options["sync"]) {
-			browser.storage.sync.get("theme").then(onGot);
-		} else {
-			browser.storage.local.get("theme").then(onGot);
-		}
-	}
-
-	function onGot(options) {
-		let theme = options["theme"];
-		let link = document.getElementById("themeLink");
-		if (link) {
-			link.href = "/themes/" + (theme ? `${theme}.css` : "default.css");
-		}
-	}
+// Clean domain helper
+function extractDomain(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    }
+  } catch (e) {}
+  return "";
 }
 
-// Open options page
-//
-function openOptions() {
-	openExtensionPage("options.html");
+// Show feedback toast
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
 }
 
-// Open lockdown page
-//
-function openLockdown() {
-	openExtensionPage("lockdown.html");
-}
-
-// Open override page
-//
-function openOverride() {
-	openExtensionPage("override.html");
-}
-
-// Open stats page
-//
-function openStats() {
-	openExtensionPage("stats.html");
-}
-
-// Open extension page (either create new tab or activate existing tab)
-//
+// Open extension page
 function openExtensionPage(url) {
-	let fullURL = browser.runtime.getURL(url);
-
-	browser.tabs.query({ url: fullURL }).then(onGot, onError);
-
-	function onGot(tabs) {
-		if (tabs.length > 0) {
-			// Bring tab to front
-			browser.tabs.update(tabs[0].id, { active: true });
-			if (browser.windows) {
-				// Bring window to front
-				browser.windows.update(tabs[0].windowId, { focused: true });
-			}
-		} else {
-			// Create new tab
-			browser.tabs.create({ url: fullURL });
-		}
-		window.close();
-	}
-
-	function onError(error) {
-		// Create new tab
-		browser.tabs.create({ url: fullURL });
-		window.close();
-	}
+  const fullURL = browser.runtime.getURL(url);
+  browser.tabs.query({ url: fullURL }).then((tabs) => {
+    if (tabs.length > 0) {
+      browser.tabs.update(tabs[0].id, { active: true });
+      if (browser.windows) {
+        browser.windows.update(tabs[0].windowId, { focused: true });
+      }
+    } else {
+      browser.tabs.create({ url: fullURL });
+    }
+    window.close();
+  }, () => {
+    browser.tabs.create({ url: fullURL });
+    window.close();
+  });
 }
 
-// Add sites
-//
-function addSites() {
-	openExtensionPage("add-sites.html");
+// Fetch current block set sites
+function loadBlockedSites(callback) {
+  browser.runtime.sendMessage({ type: "get-block-sites", set: ACTIVE_SET }, (response) => {
+    if (browser.runtime.lastError || !response) {
+      // Fallback directly to storage
+      browser.storage.local.get(`sites${ACTIVE_SET}`).then((data) => {
+        const raw = (data && data[`sites${ACTIVE_SET}`]) || "";
+        currentBlockedSites = raw.split(/\s+/).filter(Boolean);
+        if (callback) callback();
+      });
+      return;
+    }
+    const raw = response.sites || "";
+    currentBlockedSites = raw.split(/\s+/).filter(Boolean);
+    if (callback) callback();
+  });
 }
 
-// Cancel override
-//
-function cancelOverride() {
-	let message = {
-		type: "override",
-		endTime: 0
-	};
-	browser.runtime.sendMessage(message);
-
-	window.close();
+// Check if domain is in blocked list
+function isDomainBlocked(domain) {
+  if (!domain) return false;
+  domain = domain.toLowerCase();
+  return currentBlockedSites.some((item) => {
+    const cleanItem = item.replace(/^\*+|\*+$/g, "").toLowerCase();
+    return domain === cleanItem || domain.endsWith("." + cleanItem);
+  });
 }
 
-// Reset rollover time
-//
-function resetRollover() {
-	let message = {
-		type: "reset-rollover",
-	};
-	browser.runtime.sendMessage(message);
+// Render UI states
+function renderUI() {
+  const tabDomainEl = document.getElementById("tabDomain");
+  const siteStatusBadge = document.getElementById("siteStatusBadge");
+  const quickBlockBtn = document.getElementById("quickBlockBtn");
+  const quickBlockText = document.getElementById("quickBlockText");
+  const blockedCount = document.getElementById("blockedCount");
+  const chipsContainer = document.getElementById("blockedChipsContainer");
 
-	window.close();
+  // 1. Current Tab Card
+  if (!currentDomain) {
+    tabDomainEl.textContent = "Internal / Browser Tab";
+    siteStatusBadge.textContent = "Protected";
+    siteStatusBadge.className = "status-pill status-allowed";
+    quickBlockBtn.disabled = true;
+    quickBlockBtn.className = "btn btn-secondary btn-block";
+    quickBlockText.textContent = "Cannot block system tabs";
+  } else {
+    tabDomainEl.textContent = currentDomain;
+    quickBlockBtn.disabled = false;
+
+    if (isDomainBlocked(currentDomain)) {
+      siteStatusBadge.textContent = "Blocked";
+      siteStatusBadge.className = "status-pill status-blocked";
+      quickBlockBtn.className = "btn btn-danger btn-block";
+      quickBlockText.textContent = `Unblock ${currentDomain}`;
+    } else {
+      siteStatusBadge.textContent = "Not blocked";
+      siteStatusBadge.className = "status-pill status-allowed";
+      quickBlockBtn.className = "btn btn-primary btn-block";
+      quickBlockText.textContent = `+ Block ${currentDomain}`;
+    }
+  }
+
+  // 2. Preset Chips state
+  document.querySelectorAll(".preset-chip").forEach((chip) => {
+    const domain = chip.getAttribute("data-domain");
+    if (isDomainBlocked(domain)) {
+      chip.classList.add("is-blocked");
+      chip.textContent = `✓ ${domain}`;
+    } else {
+      chip.classList.remove("is-blocked");
+      chip.textContent = `+ ${domain}`;
+    }
+  });
+
+  // 3. Blocked List Chips
+  blockedCount.textContent = `${currentBlockedSites.length} site${currentBlockedSites.length === 1 ? "" : "s"}`;
+  chipsContainer.innerHTML = "";
+
+  if (currentBlockedSites.length === 0) {
+    chipsContainer.innerHTML = `<div class="empty-state">No websites blocked yet. Add one above!</div>`;
+  } else {
+    currentBlockedSites.forEach((site) => {
+      const chip = document.createElement("div");
+      chip.className = "site-chip";
+
+      const text = document.createElement("span");
+      text.className = "chip-domain";
+      text.textContent = site;
+      chip.appendChild(text);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-chip-btn";
+      removeBtn.title = `Remove ${site}`;
+      removeBtn.innerHTML = "&times;";
+      removeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeWebsite(site);
+      });
+      chip.appendChild(removeBtn);
+
+      chipsContainer.appendChild(chip);
+    });
+  }
 }
 
-// Discard remaining time
-//
-function discardTime() {
-	let message = {
-		type: "discard-time",
-	};
-	browser.runtime.sendMessage(message);
+// Add website and auto-save
+function addWebsite(domain) {
+  domain = domain.trim().toLowerCase()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/.*$/, "");
 
-	window.close();
+  if (!domain) return;
+
+  browser.runtime.sendMessage({
+    type: "add-sites",
+    sites: domain,
+    set: ACTIVE_SET
+  }, () => {
+    showToast(`Added ${domain} & saved!`);
+    loadBlockedSites(renderUI);
+  });
 }
 
-// Open online support page
-//
-function openOnlineSupport() {
-	browser.tabs.create({ url: SUPPORT_URL });
-
-	window.close();
+// Remove website and auto-save
+function removeWebsite(domain) {
+  browser.runtime.sendMessage({
+    type: "remove-site",
+    site: domain,
+    set: ACTIVE_SET
+  }, () => {
+    showToast(`Removed ${domain}`);
+    loadBlockedSites(renderUI);
+  });
 }
 
-document.querySelector("#options").addEventListener("click", openOptions);
-document.querySelector("#lockdown").addEventListener("click", openLockdown);
-document.querySelector("#override").addEventListener("click", openOverride);
-document.querySelector("#stats").addEventListener("click", openStats);
-document.querySelector("#addSites").addEventListener("click", addSites);
-document.querySelector("#cancelOverride").addEventListener("click", cancelOverride);
-document.querySelector("#resetRollover").addEventListener("click", resetRollover);
-document.querySelector("#discardTime").addEventListener("click", discardTime);
-document.querySelector("#onlineSupport").addEventListener("click", openOnlineSupport);
+// Initialize
+document.addEventListener("DOMContentLoaded", () => {
+  // Navigation & buttons
+  document.getElementById("optionsBtn").addEventListener("click", () => openExtensionPage("options.html"));
+  document.getElementById("statsBtn").addEventListener("click", () => openExtensionPage("stats.html"));
+  document.getElementById("lockdownBtn").addEventListener("click", () => openExtensionPage("lockdown.html"));
+  document.getElementById("overrideBtn").addEventListener("click", () => openExtensionPage("override.html"));
 
-document.addEventListener("DOMContentLoaded", initializePage);
+  // Quick Block Button
+  document.getElementById("quickBlockBtn").addEventListener("click", () => {
+    if (!currentDomain) return;
+    if (isDomainBlocked(currentDomain)) {
+      removeWebsite(currentDomain);
+    } else {
+      addWebsite(currentDomain);
+    }
+  });
+
+  // Custom Site Input Form
+  const addForm = document.getElementById("addSiteForm");
+  const siteInput = document.getElementById("customSiteInput");
+  addForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (siteInput.value) {
+      addWebsite(siteInput.value);
+      siteInput.value = "";
+    }
+  });
+
+  // Preset Chips
+  document.querySelectorAll(".preset-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const domain = chip.getAttribute("data-domain");
+      if (isDomainBlocked(domain)) {
+        removeWebsite(domain);
+      } else {
+        addWebsite(domain);
+      }
+    });
+  });
+
+  // Query Active Tab to populate current website
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    if (tabs && tabs.length > 0) {
+      const activeTab = tabs[0];
+      currentDomain = extractDomain(activeTab.url);
+      if (activeTab.favIconUrl && !activeTab.favIconUrl.startsWith("chrome://")) {
+        document.getElementById("tabFavicon").src = activeTab.favIconUrl;
+      }
+    }
+    loadBlockedSites(renderUI);
+  }, () => {
+    loadBlockedSites(renderUI);
+  });
+});

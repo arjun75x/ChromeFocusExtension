@@ -2,7 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const BLOCKABLE_URL = /^(http|file|about|moz-extension)/i;
+importScripts("common.js");
+
+const browser = chrome;
+
+const BLOCKABLE_URL = /^(http|file|chrome|edge|extension)/i;
 const CLOCKABLE_URL = /^(http|file)/i;
 const EXTENSION_URL = browser.runtime.getURL("");
 const BLOCKED_PAGE_URL = browser.runtime.getURL(BLOCKED_PAGE);
@@ -31,8 +35,6 @@ var gAllFocused = false;
 var gUseDocFocus = true;
 var gOverrideIcon = false;
 var gSaveSecsCount = 0;
-var gTickerID;
-var gTickerSecs = 1; // update every second by default
 
 // Initialize object to track tab (returns false if already initialized)
 //
@@ -74,7 +76,7 @@ function createRegExps() {
 		gRegExps[set].refer = referRE ? new RegExp(referRE, "i") : null;
 
 		let keywordRE = gOptions[`regexpKeyword${set}`] || gOptions[`keywordRE${set}`];
-		gRegExps[set].keyword = keywordRE ? new RegExp(keywordRE, "iu") : null;
+		gRegExps[set].keyword = keywordRE; // Chrome workaround
 	}
 }
 
@@ -92,50 +94,50 @@ function testURL(url, referrer, blockRE, allowRE, referRE, allowRefers) {
 // Refresh menus
 //
 function refreshMenus() {
-	if (!browser.menus) {
+	if (!browser.contextMenus) {
 		return; // no support for menus!
 	}
 
-	browser.menus.removeAll();
+	browser.contextMenus.removeAll();
 
 	let context = gOptions["contextMenu"] ? "all" : "action";
 
 	// Options
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "options",
 		title: browser.i18n.getMessage("optionsMenuItem"),
 		contexts: [context]
 	});
 
 	// Lockdown
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "lockdown",
 		title: browser.i18n.getMessage("lockdownMenuItem"),
 		contexts: [context]
 	});
 
 	// Override
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "override",
 		title: browser.i18n.getMessage("overrideMenuItem"),
 		contexts: [context]
 	});
 
 	// Statistics
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "stats",
 		title: browser.i18n.getMessage("statisticsMenuItem"),
 		contexts: [context]
 	});
 
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "separator",
 		type: "separator",
 		contexts: [context]
 	});
 
 	// Add Site
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "addSite",
 		title: browser.i18n.getMessage("addSiteMenuItem"),
 		contexts: [context]
@@ -146,7 +148,7 @@ function refreshMenus() {
 		let title = browser.i18n.getMessage("addSiteToBlockSetMenuItem");
 		let setName = gOptions[`setName${set}`];
 		title += setName ? ` ${set} (${setName})` : ` ${set}`;
-		browser.menus.create({
+		browser.contextMenus.create({
 			id: `addSite-${set}`,
 			parentId: "addSite",
 			title: title,
@@ -155,7 +157,7 @@ function refreshMenus() {
 	}
 
 	// Add Page
-	browser.menus.create({
+	browser.contextMenus.create({
 		id: "addPage",
 		title: browser.i18n.getMessage("addPageMenuItem"),
 		contexts: [context]
@@ -166,7 +168,7 @@ function refreshMenus() {
 		let title = browser.i18n.getMessage("addPageToBlockSetMenuItem");
 		let setName = gOptions[`setName${set}`];
 		title += setName ? ` ${set} (${setName})` : ` ${set}`;
-		browser.menus.create({
+		browser.contextMenus.create({
 			id: `addPage-${set}`,
 			parentId: "addPage",
 			title: title,
@@ -179,13 +181,9 @@ function refreshMenus() {
 //
 function refreshTicker() {
 	let processTabsSecs = +gOptions["processTabsSecs"];
-
-	// Only restart ticker if interval has changed
-	if (processTabsSecs != gTickerSecs) {
-		gTickerSecs = processTabsSecs;
-		window.clearInterval(gTickerID);
-		gTickerID = window.setInterval(onInterval, gTickerSecs * 1000);
-	}
+	
+	// Send message to ticker (offscreen document)
+	browser.runtime.sendMessage({ type: "ticker", tickerSecs: processTabsSecs });
 }
 
 // Retrieve options from storage
@@ -420,7 +418,7 @@ function processTabs(active) {
 			clockPageTime(tab.id, false, false);
 			clockPageTime(tab.id, true, focus);
 
-			if (/^(about|view-source)/i.test(tab.url)) {
+			if (/^(chrome|edge|extension)/i.test(tab.url)) {
 				gTabs[tab.id].loaded = true;
 				gTabs[tab.id].loadedTime = Date.now();
 				gTabs[tab.id].url = getCleanURL(tab.url);
@@ -550,7 +548,7 @@ function checkTab(id, isBeforeNav, isRepeat) {
 				pageURL = pageURLWithHash;
 			}
 		}
-		let isInternalPage = /^about:(addons|support|profiles|debugging)/i.test(pageURL);
+		let isInternalPage = /^[a-z]+:\/\/(extensions|settings)/i.test(pageURL);
 
 		// Get regular expressions for matching sites to block/allow
 		let blockRE = gRegExps[set].block;
@@ -566,11 +564,9 @@ function checkTab(id, isBeforeNav, isRepeat) {
 
 		if (referRE && allowRefers && isBeforeNav) continue; // too soon to check for referrers!
 
-		// Get options for preventing access to about:addons and about:support
-		let prevAddons = gOptions[`prevAddons${set}`];
-		let prevSupport = gOptions[`prevSupport${set}`];
-		let prevProfiles = gOptions[`prevProfiles${set}`];
-		let prevDebugging = gOptions[`prevDebugging${set}`];
+		// Get options for preventing access to extensions/settings pages
+		let prevExts = gOptions[`prevExts${set}`];
+		let prevSettings = gOptions[`prevSettings${set}`];
 		let prevOverride = gOptions[`prevOverride${set}`];
 
 		// Get option for counting allowed sites
@@ -586,10 +582,8 @@ function checkTab(id, isBeforeNav, isRepeat) {
 		if (isAllowedCount) match = true;
 
 		if (match
-				|| (prevAddons && /^about:addons/i.test(pageURL))
-				|| (prevSupport && /^about:support/i.test(pageURL))
-				|| (prevProfiles && /^about:profiles/i.test(pageURL))
-				|| (prevDebugging && /^about:debugging/i.test(pageURL))) {
+				|| (prevExts && /^[a-z]+:\/\/extensions/i.test(pageURL))
+				|| (prevSettings && /^[a-z]+:\/\/settings/i.test(pageURL))) {
 			// Get options for this set
 			let timedata = gOptions[`timedata${set}`];
 			let times = gOptions[`times${set}`];
@@ -743,6 +737,7 @@ function checkTab(id, isBeforeNav, isRepeat) {
 						);
 					} else {
 						gTabs[id].keyword = keyword;
+						gTabs[id].url = blockURL; // prevent reload loop on Chrome
 
 						if (browser.history && addHistory && !isInternalPage) {
 							// Add blocked page to browser history
@@ -1078,7 +1073,7 @@ function updateTimer(id) {
 	// Set tooltip
 	if (!gIsAndroid) {
 		if (secsLeft == Infinity) {
-			browser.action.setTitle({ title: null, tabId: id });
+			browser.action.setTitle({ title: "LeechBlock", tabId: id });
 		} else {
 			let title = "LeechBlock [" + formatTime(secsLeft) + "]"
 			browser.action.setTitle({ title: title, tabId: id });
@@ -1563,6 +1558,18 @@ function allowBlockedPage(id, url, set, autoLoad) {
 function addSiteToSet(url, set, includePath) {
 	//log("addSiteToSet: " + url + " " + set + " " + includePath);
 
+	if (!url) {
+		browser.tabs.query(
+			{ active: true, currentWindow: true },
+			function (tabs) { 
+				if (tabs[0].url) {
+					addSiteToSet(tabs[0].url, set);
+				}
+			}
+		);
+		return;
+	}
+
 	if (!gGotOptions || set < 1 || set > gNumSets || !/^http/i.test(url)) {
 		return;
 	}
@@ -1651,16 +1658,63 @@ function addSitesToSet(siteList, set) {
 	gOptions[`referRE${set}`] = regexps.refer;
 	gOptions[`keywordRE${set}`] = regexps.keyword;
 
-	createRegExps();
-
-	// Save updated options to storage
 	let options = {};
 	options[`sites${set}`] = sites;
 	options[`blockRE${set}`] = regexps.block;
 	options[`allowRE${set}`] = regexps.allow;
 	options[`referRE${set}`] = regexps.refer;
 	options[`keywordRE${set}`] = regexps.keyword;
-	gStorage.set(options).catch(
+
+	// If neither times nor limits have been specified yet for this set, default to all-day blocking
+	if (!gOptions[`times${set}`] && !gOptions[`limitMins${set}`]) {
+		gOptions[`times${set}`] = ALL_DAY_TIMES;
+		gOptions[`days${set}`] = [true, true, true, true, true, true, true];
+		options[`times${set}`] = ALL_DAY_TIMES;
+		options[`days${set}`] = [true, true, true, true, true, true, true];
+	}
+
+	createRegExps();
+
+	// Save updated options to storage
+	gStorage.set(options).then(() => {
+		processTabs(false);
+	}).catch(
+		function (error) { warn("Cannot set options: " + error); }
+	);
+}
+
+// Remove site from block set
+//
+function removeSiteFromSet(siteToRemove, set) {
+	if (!gGotOptions || set < 1 || set > gNumSets) {
+		return;
+	}
+
+	let sites = gOptions[`sites${set}`] || "";
+	let target = (siteToRemove || "").toLowerCase().trim();
+	if (!target) return;
+
+	let patterns = sites.split(/\s+/).filter(s => s && s.toLowerCase().trim() !== target);
+	sites = cleanSites(patterns.join(" "));
+	let regexps = getRegExpSites(sites, gOptions["matchSubdomains"]);
+
+	gOptions[`sites${set}`] = sites;
+	gOptions[`blockRE${set}`] = regexps.block;
+	gOptions[`allowRE${set}`] = regexps.allow;
+	gOptions[`referRE${set}`] = regexps.refer;
+	gOptions[`keywordRE${set}`] = regexps.keyword;
+
+	createRegExps();
+
+	let options = {};
+	options[`sites${set}`] = sites;
+	options[`blockRE${set}`] = regexps.block;
+	options[`allowRE${set}`] = regexps.allow;
+	options[`referRE${set}`] = regexps.refer;
+	options[`keywordRE${set}`] = regexps.keyword;
+	gStorage.set(options).then(() => {
+		processTabs(false);
+	}).catch(
 		function (error) { warn("Cannot set options: " + error); }
 	);
 }
@@ -1755,13 +1809,38 @@ function handleMessage(message, sender, sendResponse) {
 		return;
 	}
 
+	if (sender.documentLifecycle === "prerender") {
+		// Ignore prerendered pages
+		return;
+	}
+
 	//log("handleMessage: " + sender.tab.id + " " + message.type);
 
 	switch (message.type) {
 
 		case "add-sites":
 			// Add sites to block set
-			addSitesToSet(message.sites, message.set);
+			addSitesToSet(message.sites, message.set || 1);
+			sendResponse({ ok: true });
+			break;
+
+		case "remove-site":
+			// Remove site from block set
+			removeSiteFromSet(message.site, message.set || 1);
+			sendResponse({ ok: true });
+			break;
+
+		case "get-block-sites":
+			// Return current sites and set configuration
+			{
+				let targetSet = message.set || 1;
+				sendResponse({
+					set: targetSet,
+					setName: gOptions[`setName${targetSet}`] || `Block Set ${targetSet}`,
+					sites: gOptions[`sites${targetSet}`] || "",
+					numSets: gNumSets || 6
+				});
+			}
 			break;
 
 		case "blocked":
@@ -1843,6 +1922,11 @@ function handleMessage(message, sender, sendResponse) {
 			// Restart time data requested by statistics page
 			restartTimeData(message.set);
 			sendResponse();
+			break;
+
+		case "tick":
+			// Tick received from ticker (offscreen document)
+			handleTick();
 			break;
 
 	}
@@ -1966,8 +2050,10 @@ function handleWinFocused(winId) {
 	gFocusWindowId = winId;
 }
 
-function onInterval() {
-	//log("onInterval");
+function handleTick() {
+	//log("handleTick");
+
+	updateFocusedWindowId();
 
 	if (!gGotOptions) {
 		retrieveOptions();
@@ -1986,6 +2072,14 @@ function onAlarm(alarmInfo) {
 	//log("onAlarm: " + alarmInfo.name);
 }
 
+async function createTicker() {
+	await browser.offscreen.createDocument({
+		url: browser.runtime.getURL("ticker.html"),
+		reasons: [ browser.offscreen.Reason.WORKERS ],
+		justification: "Ticker needs to run in offscreen document"
+	});
+}
+
 /*** STARTUP CODE BEGINS HERE ***/
 
 checkManagedStorage();
@@ -1997,8 +2091,8 @@ browser.runtime.getPlatformInfo().then(
 let localePath = browser.i18n.getMessage("localePath");
 browser.action.setPopup({ popup: localePath + "popup.html" });
 
-if (browser.menus) {
-	browser.menus.onClicked.addListener(handleMenuClick);
+if (browser.contextMenus) {
+	browser.contextMenus.onClicked.addListener(handleMenuClick);
 }
 
 if (browser.commands) {
@@ -2015,10 +2109,10 @@ browser.tabs.onRemoved.addListener(handleTabRemoved);
 browser.webNavigation.onBeforeNavigate.addListener(handleBeforeNavigate);
 
 if (browser.windows) {
-	browser.windows.onFocusChanged.addListener(handleWinFocused);
+	//browser.windows.onFocusChanged.addListener(handleWinFocused);
 }
 
-gTickerID = window.setInterval(onInterval, gTickerSecs * 1000);
+createTicker();
 
 // Use alarms to keep background script alive and ticker ticking...
 let now = Date.now();

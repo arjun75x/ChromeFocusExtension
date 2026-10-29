@@ -1,96 +1,140 @@
-/* LeechBlock blocking/delaying page style */
+/* Modern Mindful Blocked Page Styles */
 
-@media (prefers-color-scheme: light) {
-
-	body {
-		background: #fff;
-	}
-
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Inter, sans-serif;
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --accent: #4f46e5;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #0b0f19;
+    --bg-card: #151d2f;
+    --border: #263553;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #6366f1;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+}
 
-	body {
-		background: #222;
-	}
-
+* {
+  box-sizing: border-box;
 }
 
 body {
-	color: #2e3436;
-	font: normal 16px "Open Sans", Arial, sans-serif;
-	text-align: center;
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 60px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
 }
 
-div {
-	margin-top: 40px;
-}
-
-h1 {
-    font-size: 24px;
-    font-weight: 300;
-}
-
-a {
-    color: #2ca089;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-blockquote {
-	font-weight: bold;
-}
-
-input, button {
-	color: #333;
-	font: normal 16px "Open Sans", Arial, sans-serif;
-	padding: 2px 8px;
-	border: 1px solid #888;
-	border-radius: 6px;
-}
-
-button {
-	background: #eee;
-}
-
-button:hover:enabled {
-	background: #ddd;
-}
-
-button:active:enabled {
-	background: #ccc;
+#lbLogoDiv {
+  margin-bottom: 24px;
 }
 
 .logo {
-	width: 408px;
+  max-width: 200px;
+  height: auto;
+  opacity: 0.9;
 }
 
-.keyword {
-	font-weight: bold;
+#lbWarningMsgDiv h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+  max-width: 600px;
+}
+
+#lbBlockedDiv {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 32px;
+  box-shadow: var(--shadow);
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto 30px auto;
+}
+
+#lbBlockedURLLink {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+#lbBlockedSet {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+#lbUnblockText {
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .time {
-	font-weight: bold;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.delay {
-	font-weight: bold;
+#lbCustomMsgDiv {
+  background: var(--bg-card);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px 20px;
+  max-width: 480px;
+  margin: 0 auto 30px auto;
+  text-align: left;
 }
 
-.error {
-	background: #f00;
+#lbCustomMsg {
+  margin: 8px 0 0 0;
+  font-style: italic;
+  color: var(--text-primary);
 }
 
 .support {
-	color: #777;
-	font-size: 14px;
-	font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
-.support a {
-	color: #777;
-	text-decoration: underline;
+a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
 }

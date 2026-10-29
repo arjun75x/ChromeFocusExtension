@@ -1,35 +1,121 @@
 <!DOCTYPE html>
-
 <html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusBlock</title>
+  <link rel="stylesheet" href="/popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="app-name">FocusBlock</span>
+          <span class="engine-tag">Powered by LeechBlock</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="statsBtn" class="icon-btn" title="View Statistics" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </button>
+        <button id="optionsBtn" class="icon-btn" title="Advanced Options" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
 
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<title>LeechBlock</title>
-		<link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
-		<link href="/popup.css" rel="stylesheet">
-		<link href="/icons/leechblock32.ico" rel="icon" type="image/x-icon">
-		<link href="/icons/leechblock32.ico" rel="shortcut icon" type="image/x-icon">
-		<link id="themeLink" rel="stylesheet">
-	</head>
+    <!-- Active Tab Quick Block Card -->
+    <section class="card current-tab-card" id="currentTabCard">
+      <div class="current-site-info">
+        <div class="domain-badge-wrap">
+          <img id="tabFavicon" class="site-favicon" src="/icons/leechblock32.png" alt="favicon">
+          <div class="site-details">
+            <span class="sub-label">Current Website</span>
+            <span id="tabDomain" class="domain-text">Detecting...</span>
+          </div>
+        </div>
+        <div id="siteStatusBadge" class="status-pill status-allowed">Not blocked</div>
+      </div>
+      <button id="quickBlockBtn" class="btn btn-primary btn-block" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span id="quickBlockText">Block This Website</span>
+      </button>
+    </section>
 
-	<body>
-		<p><img width="200" height="35" src="/images/leechblock_logo.svg" class="logo" alt="LeechBlock logo" title="LeechBlock"></p>
-		<div id="button-container" class="ui-widget">
-			<button id="options" type="button">Options</button>
-			<button id="lockdown" type="button">Lockdown</button>
-			<button id="override" type="button">Override</button>
-			<button id="stats" type="button">Statistics</button>
-			<br><br>
-			<button id="addSites" type="button">Add Sites</button>
-			<button id="cancelOverride" type="button">Cancel Override</button>
-			<button id="resetRollover" type="button">Reset Rollover Time</button>
-			<button id="discardTime" type="button">Discard Remaining Time</button>
-			<br><br>
-			<button id="onlineSupport" type="button">Online Support</button>
-		</div>
-		<script src="/popup.js"></script>
-	</body>
+    <!-- Quick Add Input -->
+    <section class="card quick-add-card">
+      <form id="addSiteForm" class="input-group">
+        <input 
+          id="customSiteInput" 
+          type="text" 
+          placeholder="Add site (e.g. netflix.com)..." 
+          autocomplete="off" 
+          spellcheck="false"
+        >
+        <button id="addSiteBtn" class="btn btn-secondary" type="submit">
+          Add
+        </button>
+      </form>
 
+      <!-- Popular Distractions Presets -->
+      <div class="presets-section">
+        <span class="presets-label">Popular Distractions:</span>
+        <div class="preset-chips">
+          <button class="preset-chip" type="button" data-domain="youtube.com">+ YouTube</button>
+          <button class="preset-chip" type="button" data-domain="reddit.com">+ Reddit</button>
+          <button class="preset-chip" type="button" data-domain="x.com">+ X / Twitter</button>
+          <button class="preset-chip" type="button" data-domain="instagram.com">+ Instagram</button>
+          <button class="preset-chip" type="button" data-domain="tiktok.com">+ TikTok</button>
+          <button class="preset-chip" type="button" data-domain="facebook.com">+ Facebook</button>
+          <button class="preset-chip" type="button" data-domain="twitch.tv">+ Twitch</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blocked Sites List Section -->
+    <section class="card blocked-list-card">
+      <div class="card-header">
+        <span class="card-title">Blocked Websites</span>
+        <span id="blockedCount" class="count-badge">0 sites</span>
+      </div>
+      <div id="blockedChipsContainer" class="blocked-chips">
+        <!-- Site chips populated dynamically -->
+        <div class="empty-state">No websites blocked yet. Add one above!</div>
+      </div>
+    </section>
+
+    <!-- Quick Focus Controls Footer -->
+    <footer class="footer-controls">
+      <button id="lockdownBtn" class="btn btn-outline" type="button" title="Start Focus Lockdown">
+        ⚡ Instant Lockdown
+      </button>
+      <button id="overrideBtn" class="btn btn-ghost" type="button" title="Take a break">
+        ⏸ Take a Break
+      </button>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Website added and saved!</div>
+
+  <script src="/popup.js"></script>
+</body>
 </html>

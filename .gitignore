@@ -1,6 +1,8 @@
 *.bat
+*.crx
 *.txt
 *.xlsx
 *.xpi
+*.zip
 
 jquery-ui/**

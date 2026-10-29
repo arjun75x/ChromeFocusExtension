@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const browser = chrome;
+
 const LIMIT_PERIOD = {
 	"3600": "this hour",
 	"86400": "today",
@@ -256,7 +258,7 @@ function resizePromptInputHeight(numLines) {
 	textarea.id = codeInput.id;
 	textarea.font = codeInput.font;
 	textarea.rows = numLines;
-	textarea.cols = codeInput.size;
+	textarea.cols = codeInput.size - 2; // need -2 to align input text with prompt
 	codeInput.replaceWith(textarea);
 }
 

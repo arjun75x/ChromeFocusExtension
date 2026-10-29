@@ -71,10 +71,8 @@ const PER_SET_OPTIONS = {
 	allowOverLock: { type: "boolean", def: true, id: "allowOverLock" },
 	prevOpts: { type: "boolean", def: false, id: "prevOpts" },
 	prevGenOpts: { type: "boolean", def: false, id: "prevGenOpts" },
-	prevAddons: { type: "boolean", def: false, id: "prevAddons" },
-	prevSupport: { type: "boolean", def: false, id: "prevSupport" },
-	prevProfiles: { type: "boolean", def: false, id: "prevProfiles" },
-	prevDebugging: { type: "boolean", def: false, id: "prevDebugging" },
+	prevExts: { type: "boolean", def: false, id: "prevExts" },
+	prevSettings: { type: "boolean", def: false, id: "prevSettings" },
 	prevOverride: { type: "boolean", def: false, id: "prevOverride" },
 	disable: { type: "boolean", def: false, id: "disable" },
 	showTimer: { type: "boolean", def: true, id: "showTimer" },
@@ -599,8 +597,11 @@ function getCleanURL(url) {
 		if (url.startsWith("view-source:")) {
 			url = url.substring(12);
 		}
-		if (url.startsWith("about:reader?url=")) {
-			url = decodeURIComponent(url.substring(17));
+		if (url.startsWith("read:")) {
+			let index = url.indexOf("?url=");
+			if (index >= 0) {
+				url = decodeURIComponent(url.substring(index + 5));
+			}
 		}
 	}
 	return url;
