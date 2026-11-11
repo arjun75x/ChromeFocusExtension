@@ -1382,12 +1382,11 @@ function applyLockdown(set, endTime) {
 		return;
 	}
 
-	// Apply lockdown only if it doesn't reduce any current lockdown
-	if (endTime > gOptions[`timedata${set}`][4]) {
-		gOptions[`timedata${set}`][4] = endTime;
-	}
+	// Apply lockdown
+	gOptions[`timedata${set}`][4] = endTime;
 
 	saveTimeData();
+	processTabs(false);
 }
 
 // Cancel lockdown for specified set
@@ -1402,6 +1401,7 @@ function cancelLockdown(set) {
 	gOptions[`timedata${set}`][4] = 0;
 
 	saveTimeData();
+	processTabs(false);
 }
 
 // Apply override
@@ -1451,6 +1451,7 @@ function applyOverride(endTime) {
 	);
 
 	updateIcon();
+	processTabs(false);
 }
 
 // Reset rollover time for set applicable to active tab
@@ -1665,13 +1666,11 @@ function addSitesToSet(siteList, set) {
 	options[`referRE${set}`] = regexps.refer;
 	options[`keywordRE${set}`] = regexps.keyword;
 
-	// If neither times nor limits have been specified yet for this set, default to all-day blocking
-	if (!gOptions[`times${set}`] && !gOptions[`limitMins${set}`]) {
-		gOptions[`times${set}`] = ALL_DAY_TIMES;
-		gOptions[`days${set}`] = [true, true, true, true, true, true, true];
-		options[`times${set}`] = ALL_DAY_TIMES;
-		options[`days${set}`] = [true, true, true, true, true, true, true];
-	}
+	// Ensure breaks are allowed during focus sessions
+	gOptions[`allowOverride${set}`] = true;
+	gOptions[`allowOverLock${set}`] = true;
+	options[`allowOverride${set}`] = true;
+	options[`allowOverLock${set}`] = true;
 
 	createRegExps();
 
@@ -1831,17 +1830,130 @@ function handleMessage(message, sender, sendResponse) {
 			break;
 
 		case "get-block-sites":
-			// Return current sites and set configuration
+		case "get-session-state":
+			// Return current session state, sites, and set configuration
 			{
 				let targetSet = message.set || 1;
+				let now = Math.floor(Date.now() / 1000) + (gClockOffset * 60);
+				let timedata = gOptions[`timedata${targetSet}`] || [];
+				let lockdownEndTime = (Array.isArray(timedata) && timedata.length > 4) ? timedata[4] : 0;
+				let isSessionActive = lockdownEndTime > now;
+				let secondsRemaining = isSessionActive ? (lockdownEndTime - now) : 0;
+
+				let breakEndTime = gOptions["oret"] || 0;
+				let isBreakActive = breakEndTime > now;
+				let breakSecondsRemaining = isBreakActive ? (breakEndTime - now) : 0;
+
+				let times = gOptions[`times${targetSet}`] || "";
+				let days = gOptions[`days${targetSet}`] || [false, true, true, true, true, true, false];
+				let hasSchedule = Boolean(times && times.trim().length > 0 && times !== "0000-0000");
+
 				sendResponse({
 					set: targetSet,
-					setName: gOptions[`setName${targetSet}`] || `Block Set ${targetSet}`,
+					numSets: 2,
+					setName1: gOptions["setName1"] || "Focus List",
+					setName2: gOptions["setName2"] || "Deep Work",
+					setName: gOptions[`setName${targetSet}`] || (targetSet === 1 ? "Focus List" : "Deep Work"),
 					sites: gOptions[`sites${targetSet}`] || "",
-					numSets: gNumSets || 6
+					isSessionActive: isSessionActive,
+					secondsRemaining: secondsRemaining,
+					sessionEndTime: lockdownEndTime,
+					isBreakActive: isBreakActive,
+					breakSecondsRemaining: breakSecondsRemaining,
+					hasSchedule: hasSchedule,
+					scheduleTimes: times,
+					scheduleDays: days,
+					customMsg: gOptions[`customMsg${targetSet}`] || ""
 				});
 			}
-			break;
+			return true;
+
+		case "start-session":
+			{
+				let targetSet = message.set || 1;
+				let durationMins = Math.max(1, message.durationMinutes || 25);
+				let now = Math.floor(Date.now() / 1000) + (gClockOffset * 60);
+				let endTime = now + (durationMins * 60);
+				applyLockdown(targetSet, endTime);
+				sendResponse({ ok: true, endTime: endTime, secondsRemaining: durationMins * 60 });
+			}
+			return true;
+
+		case "stop-session":
+			{
+				let targetSet = message.set || 1;
+				cancelLockdown(targetSet);
+				sendResponse({ ok: true });
+			}
+			return true;
+
+		case "take-break":
+			{
+				let breakMins = Math.max(1, message.durationMinutes || 5);
+				let now = Math.floor(Date.now() / 1000) + (gClockOffset * 60);
+				let endTime = now + (breakMins * 60);
+				applyOverride(endTime);
+				sendResponse({ ok: true, endTime: endTime, breakSecondsRemaining: breakMins * 60 });
+			}
+			return true;
+
+		case "end-break":
+			{
+				applyOverride(0);
+				sendResponse({ ok: true });
+			}
+			return true;
+
+		case "save-group-settings":
+			{
+				let targetSet = message.set || 1;
+				let optionsToSave = {};
+
+				if (message.setName !== undefined) {
+					gOptions[`setName${targetSet}`] = message.setName;
+					optionsToSave[`setName${targetSet}`] = message.setName;
+				}
+
+				if (message.sites !== undefined) {
+					let sites = cleanSites(message.sites);
+					let regexps = getRegExpSites(sites, gOptions["matchSubdomains"]);
+					gOptions[`sites${targetSet}`] = sites;
+					gOptions[`blockRE${targetSet}`] = regexps.block;
+					gOptions[`allowRE${targetSet}`] = regexps.allow;
+					gOptions[`referRE${targetSet}`] = regexps.refer;
+					gOptions[`keywordRE${targetSet}`] = regexps.keyword;
+
+					optionsToSave[`sites${targetSet}`] = sites;
+					optionsToSave[`blockRE${targetSet}`] = regexps.block;
+					optionsToSave[`allowRE${targetSet}`] = regexps.allow;
+					optionsToSave[`referRE${targetSet}`] = regexps.refer;
+					optionsToSave[`keywordRE${targetSet}`] = regexps.keyword;
+				}
+
+				if (message.schedule !== undefined) {
+					let times = message.schedule.enabled ? (message.schedule.times || "0900-1700") : "";
+					let days = message.schedule.days || [false, true, true, true, true, true, false];
+					gOptions[`times${targetSet}`] = times;
+					gOptions[`days${targetSet}`] = days;
+					optionsToSave[`times${targetSet}`] = times;
+					optionsToSave[`days${targetSet}`] = days;
+				}
+
+				if (message.customMsg !== undefined) {
+					gOptions[`customMsg${targetSet}`] = message.customMsg;
+					optionsToSave[`customMsg${targetSet}`] = message.customMsg;
+				}
+
+				createRegExps();
+				gStorage.set(optionsToSave).then(() => {
+					processTabs(false);
+					sendResponse({ ok: true });
+				}).catch(err => {
+					warn("Cannot save group settings: " + err);
+					sendResponse({ ok: false, error: String(err) });
+				});
+			}
+			return true;
 
 		case "blocked":
 			// Block info requested by blocking page

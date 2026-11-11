@@ -1,56 +1,53 @@
 <!DOCTYPE html>
-
 <html id="lbBlockingPage" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focus Session Active</title>
+  <link rel="shortcut icon" href="/icons/leechblock32.ico" type="image/x-icon">
+  <link rel="icon" href="/icons/leechblock32.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/style.css" type="text/css">
+  <link id="themeLink" rel="stylesheet">
+  <style id="customStyle"></style>
+</head>
+<body>
+  <!-- Brand Header -->
+  <div class="block-icon-wrap">
+    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </svg>
+  </div>
 
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=0.75, shrink-to-fit=no">
-		<title>Site Blocked</title>
-		<link rel="shortcut icon" href="/icons/leechblock32.ico" type="image/x-icon">
-		<link rel="icon" href="/icons/leechblock32.ico" type="image/x-icon">
-		<link rel="stylesheet" href="/fonts.css" type="text/css">
-		<link rel="stylesheet" href="/style.css" type="text/css">
-		<link id="themeLink" rel="stylesheet">
-		<style id="customStyle"></style>
-	</head>
+  <div id="lbWarningMsgDiv">
+    <h1>Focus Session in Progress</h1>
+    <p class="subtitle">This website is blocked to help you stay in the flow.</p>
+  </div>
 
-	<body>
+  <!-- Blocked site info -->
+  <div id="lbBlockedDiv">
+    <div id="lbBlockedURLLink"><span id="lbBlockedURL"></span></div>
+    <span id="lbBlockedSet">Focus List</span>
+    <p id="lbKeywordMatched" style="display: none;">Keyword matched: <span id="lbKeywordMatch" class="keyword"></span></p>
+    <p id="lbUnblockText">Session completes at: <span id="lbUnblockTime" class="time">the end of session</span></p>
+  </div>
 
-		<!-- logo -->
-		<div id="lbLogoDiv">
-			<a href="https://www.proginosko.com/leechblock/"><img id="lbLogoImg" src="/images/leechblock_logo.svg" class="logo" alt="LeechBlock logo" title="LeechBlock"></a>
-		</div>
+  <!-- Custom message (optional) -->
+  <div id="lbCustomMsgDiv" style="display: none;">
+    <p class="custom-msg-label">A reminder to yourself:</p>
+    <blockquote id="lbCustomMsg"></blockquote>
+  </div>
 
-		<!-- warning message -->
-		<div id="lbWarningMsgDiv">
-			<h1>The page you're trying to access has been blocked by <a href="https://www.proginosko.com/leechblock/">LeechBlock</a>.</h1>
-		</div>
+  <!-- Action button -->
+  <div class="actions-div">
+    <button id="closeTabBtn" class="btn btn-primary" type="button">Close Tab</button>
+  </div>
 
-		<!-- blocked site info -->
-		<div id="lbBlockedDiv">
-			<a id="lbBlockedURLLink" target="_self"><span id="lbBlockedURL"></span></a>
-			(<span id="lbBlockedSet">Block Set</span>)
-			<p id="lbKeywordMatched" style="display: none;">Keyword matched: <span id="lbKeywordMatch" class="keyword"></span></p>
-			<p id="lbUnblockText">The page will be unblocked at: <span id="lbUnblockTime" class="time">the end of time</span></p>
-		</div>
-
-		<!-- custom message (optional) -->
-		<div id="lbCustomMsgDiv" style="display: none;">
-			<p>A message from yourself:</p>
-			<blockquote id="lbCustomMsg"></blockquote>
-		</div>
-
-		<!-- support info -->
-		<div id="lbSupportDiv" class="support">
-			LeechBlock will always be free to use, but if it has improved your life,<br>
-			please consider supporting its continued development by<br>
-			<a href="https://www.paypal.me/JamesNAnderson">making a contribution</a> or
-			<a href="https://chrome.google.com/webstore/detail/leechblock-ng/blaaajhemilngeeffpbfkdjjoefldkok">writing a review</a>.
-		</div>
-
-		<script src="/blocked.js"></script>
-
-	</body>
-
+  <script src="/blocked.js"></script>
+  <script>
+    document.getElementById("closeTabBtn").addEventListener("click", () => {
+      browser.runtime.sendMessage({ type: "close" });
+    });
+  </script>
+</body>
 </html>

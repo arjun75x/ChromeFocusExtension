@@ -67,7 +67,7 @@ const PER_SET_OPTIONS = {
 	delayCancel: { type: "boolean", def: true, id: "delayCancel" },
 	reloadSecs: { type: "string", def: "", id: "reloadSecs" },
 	addHistory: { type: "boolean", def: false, id: "addHistory" },
-	allowOverride: { type: "boolean", def: false, id: "allowOverride" },
+	allowOverride: { type: "boolean", def: true, id: "allowOverride" },
 	allowOverLock: { type: "boolean", def: true, id: "allowOverLock" },
 	prevOpts: { type: "boolean", def: false, id: "prevOpts" },
 	prevGenOpts: { type: "boolean", def: false, id: "prevGenOpts" },
@@ -89,7 +89,7 @@ const PER_SET_OPTIONS = {
 const GENERAL_OPTIONS = {
 	// def: default value, id: form element identifier (see options.html)
 	simplified: { type: "boolean", def: true, id: null }, // default: show simplified options
-	numSets: { type: "string", def: "6", id: "numSets" }, // default: 6 block sets
+	numSets: { type: "string", def: "2", id: "numSets" }, // default: 2 block sets
 	sync: { type: "boolean", def: false, id: "syncStorage" }, // default: use local storage
 	theme: { type: "string", def: "", id: "theme" }, // default: light theme
 	customStyle: { type: "string", def: "", id: "customStyle" }, // default: no custom style
@@ -175,6 +175,21 @@ function cleanOptions(options) {
 				options[`${name}${set}`] = def;
 			}
 		}
+	}
+
+	if (!options["setName1"]) {
+		options["setName1"] = "Focus List";
+	}
+	if (!options["setName2"]) {
+		options["setName2"] = "Deep Work";
+	}
+
+	// Clear legacy forced all-day blocks from previous experimental build
+	if (options["times1"] === "0000-2400" && !options["_hasCustomAllDay1"]) {
+		options["times1"] = "";
+	}
+	if (options["times2"] === "0000-2400" && !options["_hasCustomAllDay2"]) {
+		options["times2"] = "";
 	}
 }
 

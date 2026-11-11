@@ -1,12 +1,12 @@
 {
 
 	"extensionName": {
-		"message": "FocusBlock (LeechBlock NG)",
+		"message": "FocusBlock",
 		"description": "Name of the extension."
 	},
 
 	"extensionDescription": {
-		"message": "LeechBlock is a simple productivity tool for blocking time-wasting sites.",
+		"message": "A clean focus timer and website blocker to stop mindless scrolling.",
 		"description": "Description of the extension."
 	},
 

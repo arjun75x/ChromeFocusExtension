@@ -12,25 +12,18 @@
     <header class="header">
       <div class="brand">
         <div class="brand-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="m9 12 2 2 4-4"/>
           </svg>
         </div>
         <div class="brand-text">
           <span class="app-name">FocusBlock</span>
-          <span class="engine-tag">Powered by LeechBlock</span>
         </div>
       </div>
-      <div class="header-actions">
-        <button id="statsBtn" class="icon-btn" title="View Statistics" type="button">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
-        </button>
-        <button id="optionsBtn" class="icon-btn" title="Advanced Options" type="button">
+      <div class="header-right">
+        <div id="globalStatusPill" class="status-pill status-idle">Idle</div>
+        <button id="optionsBtn" class="icon-btn" title="Open Settings" type="button">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -39,82 +32,162 @@
       </div>
     </header>
 
-    <!-- Active Tab Quick Block Card -->
+    <!-- Group Selector (Set 1 vs Set 2) -->
+    <div class="group-switcher">
+      <button id="groupTab1" class="group-tab active" type="button" data-set="1">
+        <span id="groupTabName1">Focus List</span>
+      </button>
+      <button id="groupTab2" class="group-tab" type="button" data-set="2">
+        <span id="groupTabName2">Deep Work</span>
+      </button>
+    </div>
+
+    <!-- HERO SECTION: Focus Timer Card -->
+    <section class="card timer-card" id="timerCard">
+      <!-- State 1: IDLE -->
+      <div id="timerIdleView" class="timer-view">
+        <div class="timer-header">
+          <div class="timer-title-wrap">
+            <span class="card-title">Block for a Period</span>
+            <span class="card-subtitle">Sites in this group will be blocked during your session</span>
+          </div>
+        </div>
+
+        <div class="duration-selector">
+          <button class="duration-chip" type="button" data-mins="15">15m</button>
+          <button class="duration-chip active" type="button" data-mins="25">25m</button>
+          <button class="duration-chip" type="button" data-mins="45">45m</button>
+          <button class="duration-chip" type="button" data-mins="60">60m</button>
+          <div class="custom-duration-wrap">
+            <input id="customMinsInput" type="number" min="1" max="999" placeholder="Custom" aria-label="Custom minutes">
+            <span class="custom-unit">m</span>
+          </div>
+        </div>
+
+        <button id="startSessionBtn" class="btn btn-primary btn-block btn-lg" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span id="startSessionBtnText">Start Focus Session (25 min)</span>
+        </button>
+      </div>
+
+      <!-- State 2: ACTIVE SESSION -->
+      <div id="timerActiveView" class="timer-view" style="display: none;">
+        <div class="active-badge-row">
+          <span class="pulse-indicator"></span>
+          <span class="active-label">FOCUS SESSION ACTIVE</span>
+        </div>
+
+        <div class="countdown-display" id="sessionCountdown">25:00</div>
+        <div class="session-progress-bar">
+          <div id="sessionProgressFill" class="progress-fill" style="width: 100%;"></div>
+        </div>
+        <div class="session-subtext" id="sessionTargetSubtext">Distracting sites are now blocked</div>
+
+        <div class="active-actions-row">
+          <button id="takeBreakBtn" class="btn btn-secondary flex-1" type="button" title="Temporarily unblock for 5 minutes">
+            ☕ Take 5m Break
+          </button>
+          <button id="stopSessionBtn" class="btn btn-danger-outline flex-1" type="button" title="End focus session">
+            ✕ End Session
+          </button>
+        </div>
+      </div>
+
+      <!-- State 3: ACTIVE BREAK -->
+      <div id="timerBreakView" class="timer-view" style="display: none;">
+        <div class="break-badge-row">
+          <span class="break-icon">☕</span>
+          <span class="break-label">BREAK IN PROGRESS</span>
+        </div>
+
+        <div class="countdown-display countdown-break" id="breakCountdown">05:00</div>
+        <div class="session-subtext">Sites temporarily unblocked. Take a quick breather!</div>
+
+        <button id="endBreakBtn" class="btn btn-primary btn-block" type="button">
+          ▶ Resume Focus Now
+        </button>
+      </div>
+    </section>
+
+    <!-- CURRENT TAB BANNER -->
     <section class="card current-tab-card" id="currentTabCard">
       <div class="current-site-info">
         <div class="domain-badge-wrap">
           <img id="tabFavicon" class="site-favicon" src="/icons/leechblock32.png" alt="favicon">
           <div class="site-details">
-            <span class="sub-label">Current Website</span>
+            <span class="sub-label">Current Tab</span>
             <span id="tabDomain" class="domain-text">Detecting...</span>
           </div>
         </div>
         <div id="siteStatusBadge" class="status-pill status-allowed">Not blocked</div>
       </div>
-      <button id="quickBlockBtn" class="btn btn-primary btn-block" type="button">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="16"/>
-          <line x1="8" y1="12" x2="16" y2="12"/>
-        </svg>
-        <span id="quickBlockText">Block This Website</span>
+      <button id="quickSiteActionBtn" class="btn btn-secondary btn-block" type="button">
+        + Add to Blocklist
       </button>
     </section>
 
-    <!-- Quick Add Input -->
-    <section class="card quick-add-card">
+    <!-- SITES IN THIS GROUP -->
+    <section class="card group-sites-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-title">Blocked Websites</span>
+          <span id="sitesCountBadge" class="count-badge">0 sites</span>
+        </div>
+        <span id="activeGroupNameLabel" class="group-tag">Focus List</span>
+      </div>
+
+      <!-- Add Input -->
       <form id="addSiteForm" class="input-group">
         <input 
           id="customSiteInput" 
           type="text" 
-          placeholder="Add site (e.g. netflix.com)..." 
+          placeholder="Add domain (e.g. netflix.com)..." 
           autocomplete="off" 
           spellcheck="false"
         >
-        <button id="addSiteBtn" class="btn btn-secondary" type="submit">
+        <button id="addSiteSubmitBtn" class="btn btn-secondary" type="submit">
           Add
         </button>
       </form>
 
-      <!-- Popular Distractions Presets -->
+      <!-- Popular Presets -->
       <div class="presets-section">
-        <span class="presets-label">Popular Distractions:</span>
+        <span class="presets-label">Quick Add:</span>
         <div class="preset-chips">
           <button class="preset-chip" type="button" data-domain="youtube.com">+ YouTube</button>
           <button class="preset-chip" type="button" data-domain="reddit.com">+ Reddit</button>
           <button class="preset-chip" type="button" data-domain="x.com">+ X / Twitter</button>
           <button class="preset-chip" type="button" data-domain="instagram.com">+ Instagram</button>
           <button class="preset-chip" type="button" data-domain="tiktok.com">+ TikTok</button>
-          <button class="preset-chip" type="button" data-domain="facebook.com">+ Facebook</button>
           <button class="preset-chip" type="button" data-domain="twitch.tv">+ Twitch</button>
+          <button class="preset-chip" type="button" data-domain="netflix.com">+ Netflix</button>
         </div>
       </div>
-    </section>
 
-    <!-- Blocked Sites List Section -->
-    <section class="card blocked-list-card">
-      <div class="card-header">
-        <span class="card-title">Blocked Websites</span>
-        <span id="blockedCount" class="count-badge">0 sites</span>
-      </div>
+      <!-- Chips Container -->
       <div id="blockedChipsContainer" class="blocked-chips">
-        <!-- Site chips populated dynamically -->
-        <div class="empty-state">No websites blocked yet. Add one above!</div>
+        <div class="empty-state">No websites in this group yet. Add one above!</div>
       </div>
     </section>
 
-    <!-- Quick Focus Controls Footer -->
-    <footer class="footer-controls">
-      <button id="lockdownBtn" class="btn btn-outline" type="button" title="Start Focus Lockdown">
-        ⚡ Instant Lockdown
-      </button>
-      <button id="overrideBtn" class="btn btn-ghost" type="button" title="Take a break">
-        ⏸ Take a Break
-      </button>
+    <!-- SCHEDULE STATUS BANNER (if enabled) -->
+    <div id="scheduleBanner" class="schedule-banner" style="display: none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span id="scheduleBannerText">Scheduled hours active</span>
+    </div>
+
+    <!-- Footer links -->
+    <footer class="footer-links">
+      <button id="openSettingsLink" class="text-link" type="button">Edit schedules & advanced options</button>
     </footer>
   </div>
 
-  <div id="toast" class="toast">Website added and saved!</div>
+  <div id="toast" class="toast">Website added!</div>
 
   <script src="/popup.js"></script>
 </body>
