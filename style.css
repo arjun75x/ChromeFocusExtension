@@ -8,21 +8,21 @@
   --text-primary: #0f172a;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
+  --accent: #dc2626;
+  --accent-hover: #b91c1c;
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-page: #0b0f19;
-    --bg-card: #151d2f;
-    --border: #263553;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --accent: #6366f1;
-    --accent-hover: #4f46e5;
+    --bg-page: #0a0a0c;
+    --bg-card: #141417;
+    --border: #27272a;
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #ef4444;
+    --accent-hover: #dc2626;
     --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   }
 }
@@ -50,13 +50,14 @@ body {
   width: 72px;
   height: 72px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #ffffff;
+  background: #121214;
+  border: 2px solid #2d1416;
+  color: #ef4444;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 #lbWarningMsgDiv h1 {

@@ -9,16 +9,16 @@
   --bg-card: #ffffff;
   --bg-hover: #f1f5f9;
   --border-color: #e2e8f0;
-  --border-focus: #6366f1;
+  --border-focus: #ef4444;
   
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
   
-  --accent-color: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-light: #eef2ff;
-  --accent-text: #4338ca;
+  --accent-color: #dc2626;
+  --accent-hover: #b91c1c;
+  --accent-light: #fef2f2;
+  --accent-text: #dc2626;
   
   --danger-color: #ef4444;
   --danger-bg: #fef2f2;
@@ -33,7 +33,7 @@
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-active: 0 0 0 1px rgba(99, 102, 241, 0.3), 0 8px 16px -4px rgba(79, 70, 229, 0.15);
+  --shadow-active: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 8px 16px -4px rgba(220, 38, 38, 0.15);
   
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -42,21 +42,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-card: #1e293b;
-    --bg-hover: #334155;
-    --border-color: #334155;
-    --border-focus: #818cf8;
+    --bg-primary: #0f0f12;
+    --bg-secondary: #18181b;
+    --bg-card: #18181b;
+    --bg-hover: #27272a;
+    --border-color: #27272a;
+    --border-focus: #ef4444;
     
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
     
-    --accent-color: #6366f1;
-    --accent-hover: #4f46e5;
-    --accent-light: rgba(99, 102, 241, 0.15);
-    --accent-text: #a5b4fc;
+    --accent-color: #ef4444;
+    --accent-hover: #dc2626;
+    --accent-light: rgba(239, 68, 68, 0.15);
+    --accent-text: #fca5a5;
     
     --danger-color: #f87171;
     --danger-bg: rgba(239, 68, 68, 0.15);
@@ -71,7 +71,7 @@
     
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-active: 0 0 0 1px rgba(129, 140, 248, 0.4), 0 8px 16px -4px rgba(99, 102, 241, 0.3);
+    --shadow-active: 0 0 0 1px rgba(239, 68, 68, 0.4), 0 8px 16px -4px rgba(239, 68, 68, 0.25);
   }
 }
 
@@ -118,12 +118,13 @@ body {
   width: 28px;
   height: 28px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #ffffff;
+  background: #121214;
+  border: 1px solid #2d1416;
+  color: #ef4444;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .app-name {
@@ -381,7 +382,7 @@ body {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4f46e5, #10b981);
+  background: linear-gradient(90deg, #dc2626, #ef4444);
   border-radius: 3px;
   transition: width 1s linear;
 }
@@ -429,15 +430,15 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-color), #4338ca);
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.25);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--accent-hover), #3730a3);
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.35);
 }
 
 .btn-primary:active {
